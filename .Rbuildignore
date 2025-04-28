@@ -25,3 +25,4 @@ tests/.*_ghaction.R
 ^\.github$
 rhub-checks
 /Untitled.+\.R$
+^CRAN-SUBMISSION$
