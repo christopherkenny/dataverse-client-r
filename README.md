@@ -294,7 +294,7 @@ offer metadata download from any web repository that is compliant with
 the [Open Archives Initiative](https://www.openarchives.org:443/)
 standards. Additionally,
 [rdryad](https://cran.r-project.org/package=rdryad) uses OAIHarvester to
-interface with [Dryad](https://datadryad.org/stash). The
+interface with [Dryad](https://datadryad.org/). The
 [rfigshare](https://cran.r-project.org/package=rfigshare) package works
 in a similar spirit to **dataverse** with <https://figshare.com/>.
 
