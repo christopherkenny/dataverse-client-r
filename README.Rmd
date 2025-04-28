@@ -99,10 +99,10 @@ nlsw_tsv <-
   )
 ```
 
-Now, Dataverse often translates rectangular data into an ingested, or "archival" version, which is application-neutral and easily-readable. `read_dataframe_*()` defaults to taking this ingested version rather than using the original, through the argument `original = FALSE`.
+**The `original` argument:** Dataverse often translates rectangular data into an ingested, or "archival" version, which is application-neutral and easily-readable. `read_dataframe_*()` defaults to taking this ingested version rather than using the original, through the argument `original = FALSE`.
+This default is safe because you may not have the proprietary software that was originally used. 
 
-This default is safe because you may not have the proprietary software that was originally used. On the other hand, the data may have lost information in the process of the ingestation.
-
+On the other hand, the data may have lost information in the process of the ingestion.
 Instead, to read the same file but its original version, specify `original = TRUE` and set an `.f` argument. In this case, we know that `nlsw88.tab` is a Stata `.dta` dataset, so we will use the `haven::read_dta` function.
 
 ```{r get_dataframe_by_name_original}
@@ -120,7 +120,6 @@ Note that even though the file prefix is ".tab", we use `haven::read_dta`.
 
 Of course, when the dataset is not ingested (such as a Rds file), users would always need to specify an `.f` argument for the specific file.
 
-
 Note the difference between `nls_tsv` and `nls_original`. `nls_original` preserves the data attributes like value labels, whereas `nls_tsv` has dropped this or left this in file metadata.
 
 ```{r}
@@ -132,6 +131,7 @@ attr(nlsw_original$race, "labels") # original dta has value labels
 ```
 
 
+**Caching**: When the dataset to be downloaded is large, downloading the dataset from the internet can be time consuming, and users want to run the download only once in a script they run multiple times. As of version 0.3.15, our package will cache the download data if the user specifies which version of the Dataverse dataset they download from. See the `version` argument in the help page.
 
 ### Data Upload and Archiving
 
