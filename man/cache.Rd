@@ -19,15 +19,14 @@ cache_reset()
 \arguments{
 \item{version}{A character specifying a version of the dataset.
 This can be of the form \code{"1.1"} or \code{"1"} (where in \code{"x.y"}, x is a major
-version and y is an optional minor version), or
-\code{":latest"} (the default, the latest published version).
-We recommend using the number format so that
-the function stores a cache of the data (See \code{\link{cache_dataset}}).
+version and y is an optional minor version). As of v0.3.14, setting a version
+in this way will cache the dataset (See example in \code{\link{cache_dataset}})
+so that it will not re-download the file the second time and read from the cache.
+Finally, set \code{use_cache = "none"} to not read from the cache and re-download
+afresh even when \code{version} is provided.
 If the user specifies a \code{key} or \code{DATAVERSE_KEY} argument, they can access the
 draft version by \code{":draft"} (the current draft) or \code{":latest"} (which will
-prioritize the draft over the latest published version.
-Finally, set \code{use_cache = "none"} to not read from the cache and re-download
-afresh even when \code{version} is provided.}
+prioritize the draft over the latest published version).}
 }
 \value{
 \code{cache_dataset()} returns \code{"disk"} if the dataset version is to be cached to disk, \code{"none"} otherwise.

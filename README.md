@@ -137,18 +137,17 @@ nlsw_tsv <-
   )
 ```
 
-Now, Dataverse often translates rectangular data into an ingested, or
-“archival” version, which is application-neutral and easily-readable.
-`read_dataframe_*()` defaults to taking this ingested version rather
-than using the original, through the argument `original = FALSE`.
+**The `original` argument:** Dataverse often translates rectangular data
+into an ingested, or “archival” version, which is application-neutral
+and easily-readable. `read_dataframe_*()` defaults to taking this
+ingested version rather than using the original, through the argument
+`original = FALSE`. This default is safe because you may not have the
+proprietary software that was originally used.
 
-This default is safe because you may not have the proprietary software
-that was originally used. On the other hand, the data may have lost
-information in the process of the ingestation.
-
-Instead, to read the same file but its original version, specify
-`original = TRUE` and set an `.f` argument. In this case, we know that
-`nlsw88.tab` is a Stata `.dta` dataset, so we will use the
+On the other hand, the data may have lost information in the process of
+the ingestion. Instead, to read the same file but its original version,
+specify `original = TRUE` and set an `.f` argument. In this case, we
+know that `nlsw88.tab` is a Stata `.dta` dataset, so we will use the
 `haven::read_dta` function.
 
 ``` r
@@ -184,6 +183,13 @@ attr(nlsw_original$race, "labels") # original dta has value labels
 
     ## white black other 
     ##     1     2     3
+
+**Caching**: When the dataset to be downloaded is large, downloading the
+dataset from the internet can be time consuming, and users want to run
+the download only once in a script they run multiple times. As of
+version 0.3.15, our package will cache the download data if the user
+specifies which version of the Dataverse dataset they download from. See
+the `version` argument in the help page.
 
 ### Data Upload and Archiving
 
@@ -288,7 +294,7 @@ offer metadata download from any web repository that is compliant with
 the [Open Archives Initiative](https://www.openarchives.org:443/)
 standards. Additionally,
 [rdryad](https://cran.r-project.org/package=rdryad) uses OAIHarvester to
-interface with [Dryad](https://datadryad.org/stash). The
+interface with [Dryad](https://datadryad.org/). The
 [rfigshare](https://cran.r-project.org/package=rfigshare) package works
 in a similar spirit to **dataverse** with <https://figshare.com/>.
 

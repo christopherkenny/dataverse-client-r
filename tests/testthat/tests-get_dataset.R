@@ -16,7 +16,7 @@ test_that("download tab from DOI and filename", {
     "lastUpdateTime", "latestVersionPublishingState", "license",
     "metadataBlocks", "publicationDate", "releaseTime",
     "storageIdentifier", "UNF", "versionMinorNumber",
-    "versionNumber", "versionState")
+    "versionNumber", "versionState", "deaccessionLink")
 
   expect_setequal(names(actual)             , expected_names)
   expect_equal(actual$id                    , 182158L)
