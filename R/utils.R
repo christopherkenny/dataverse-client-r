@@ -229,7 +229,7 @@ api_get <- function(url, ..., key = NULL, as = "text", use_cache = Sys.getenv("D
 ## .onLoad()
 api_get_impl <- function(url, ..., key = NULL, as = "text") {
   if (!is.null(key))
-    key <- httr::add_headers("X-Dataverse-key", key)
+    key <- httr::add_headers("X-Dataverse-key" = key)
   r <- httr::GET(url, ..., key)
   httr::stop_for_status(r, task = httr::content(r)$message)
   httr::content(r, as = as, encoding = "UTF-8")
