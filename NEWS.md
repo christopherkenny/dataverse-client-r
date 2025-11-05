@@ -1,5 +1,7 @@
 # dataverse
 
+# CHANGES in dataverse 0.3.16
+
 * Fix API calls to set X-Dataverse-key header correctly (#140, by @konradoberwimmer)
 
 # CHANGES in dataverse 0.3.15
@@ -10,7 +12,7 @@
 
 * Improve recommendation for rdata loading (#107, #127)
 * `get_file_by_*()` can now return the download URL to be used in external functions or programs, useful for large files (#128, implemented in #129 @JBGruber and @kuriwaki)
-* Removes remote resource from vignette and move them to ghactions (#131)
+* Removes remote resource from vignette and move them to `ghactions` (#131)
 
 # CHANGES in dataverse 0.3.12 and 0.3.13
 
