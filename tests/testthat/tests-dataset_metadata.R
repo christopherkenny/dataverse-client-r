@@ -27,7 +27,8 @@ test_that("check versions format", {
     "fileAccessRequest", "files", "id", "lastUpdateTime", "latestVersionPublishingState",
     "license", "metadataBlocks", "publicationDate", "releaseTime",
     "storageIdentifier", "UNF", "versionMinorNumber", "versionNumber",
-    "versionState", "deaccessionLink")
+    "versionState", "deaccessionLink",
+    "datasetType", "internalVersionNumber")
   expect_setequal(names(actual[[1]]), expected_names)
   expect_s3_class(actual[[2]], "dataverse_dataset_version")
 })
