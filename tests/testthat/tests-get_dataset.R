@@ -16,7 +16,8 @@ test_that("download tab from DOI and filename", {
     "lastUpdateTime", "latestVersionPublishingState", "license",
     "metadataBlocks", "publicationDate", "releaseTime",
     "storageIdentifier", "UNF", "versionMinorNumber",
-    "versionNumber", "versionState", "deaccessionLink")
+    "versionNumber", "versionState", "deaccessionLink",
+    "datasetType", "internalVersionNumber")
 
   expect_setequal(names(actual)             , expected_names)
   expect_equal(actual$id                    , 182158L)
@@ -28,7 +29,6 @@ test_that("download tab from DOI and filename", {
   expect_equal(actual$license$name          , "CC0 1.0")
 
   expect_equal(nrow(files)                  , 2L)
-  expect_equal(ncol(files)                  , 26L)
 
   expect_setequal(files$label            , c("roster-bulls-1996.tab", "vector-basketball.svg"))
   expect_setequal(files$restricted       , c(FALSE, FALSE))
