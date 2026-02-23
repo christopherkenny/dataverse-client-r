@@ -36,7 +36,12 @@ dataverse_metadata <- function(dataverse, key = Sys.getenv("DATAVERSE_KEY"), ser
 set_dataverse_metadata <- function(dataverse, body, root = TRUE, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.getenv("DATAVERSE_SERVER"), ...) {
     dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
     u <- paste0(api_url(server), "dataverses/", dataverse, "/metadatablocks/", tolower(as.character(root)))
-    r <- httr::POST(u, httr::add_headers("X-Dataverse-key" = key), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    httr::content(r, as = "text", encoding = "UTF-8")$data
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_method("POST") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    httr2::resp_body_json(r)$data
 }

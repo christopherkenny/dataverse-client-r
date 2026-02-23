@@ -34,9 +34,14 @@ assign_role <- function(dataverse, assignee, role, key = Sys.getenv("DATAVERSE_K
     dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
     u <- paste0(api_url(server), "dataverses/", dataverse, "/assignments")
     b <- list(assignee = assignee, role = role)
-    r <- httr::POST(u, httr::add_headers("X-Dataverse-key" = key), body = b, encode = "json", ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    j <- jsonlite::fromJSON(httr::content(r, as = "text", encoding = "UTF-8"))$data
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_json(b) |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    j <- jsonlite::fromJSON(httr2::resp_body_string(r))$data
     j
 }
 
@@ -45,7 +50,12 @@ assign_role <- function(dataverse, assignee, role, key = Sys.getenv("DATAVERSE_K
 delete_assignment <- function(dataverse, assignment, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.getenv("DATAVERSE_SERVER"), ...) {
     dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
     u <- paste0(api_url(server), "dataverses/", dataverse, "/assignments/", assignment)
-    r <- httr::DELETE(u, httr::add_headers("X-Dataverse-key" = key), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    httr::content(r, as = "text", encoding = "UTF-8")
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_method("DELETE") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    httr2::resp_body_string(r)
 }

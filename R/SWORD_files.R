@@ -88,12 +88,18 @@ add_file <- function(dataset, file, key = Sys.getenv("DATAVERSE_KEY"), server = 
     # file can be: a character vector of file names, a data.frame, or a list of R objects
     file <- create_zip(file)
 
-    h <- httr::add_headers("Content-Disposition" = paste0("filename=", file),
-                           "Content-Type" = "application/zip",
-                           "Packaging" = "http://purl.org/net/sword/package/SimpleZip")
-    r <- httr::POST(u, httr::authenticate(key, ""), h, body = httr::upload_file(file), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    parse_atom(httr::content(r, as = "text", encoding = "UTF-8"))
+    req <- httr2::request(u) |>
+        httr2::req_auth_basic(key, "") |>
+        httr2::req_headers(
+            "Content-Disposition" = paste0("filename=", file),
+            "Packaging" = "http://purl.org/net/sword/package/SimpleZip"
+        ) |>
+        httr2::req_body_file(file, type = "application/zip") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    parse_atom(httr2::resp_body_string(r))
 }
 
 #' @title Delete file (SWORD)
@@ -136,9 +142,14 @@ delete_file <- function(id, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.gete
     } else {
         u <- paste0(api_url(server, prefix="dvn/api/"), "data-deposit/v1.1/swordv2/edit-media/file/", id)
     }
-    r <- httr::DELETE(u, httr::authenticate(key, ""), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    cont <- httr::content(r, as = "text", encoding = "UTF-8")
+    req <- httr2::request(u) |>
+        httr2::req_auth_basic(key, "") |>
+        httr2::req_method("DELETE") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    cont <- httr2::resp_body_string(r)
     if (cont == "") {
         return(TRUE)
     } else {

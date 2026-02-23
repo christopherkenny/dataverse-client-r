@@ -74,12 +74,17 @@ add_dataset_file <-
     jsondata <- as.character(jsonlite::toJSON(bod2, auto_unbox = TRUE))
 
     u <- paste0(api_url(server), "datasets/", dataset, "/add")
-    r <- httr::POST(u, httr::add_headers("X-Dataverse-key" = key), ...,
-                    body = list(file = httr::upload_file(file),
-                                jsonData = jsondata),
-                    encode = "multipart")
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    out <- jsonlite::fromJSON(httr::content(r, "text", encoding = "UTF-8"))
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_multipart(
+            file = curl::form_file(file),
+            jsonData = jsondata
+        ) |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    out <- jsonlite::fromJSON(httr2::resp_body_string(r))
     out$data$files$dataFile$id[1L]
   }
 
@@ -114,15 +119,18 @@ update_dataset_file <-
     jsondata <- as.character(jsonlite::toJSON(bod2, auto_unbox = TRUE))
 
     u <- paste0(api_url(server), "files/", id, "/replace")
-    r <- httr::POST(u,
-                    httr::add_headers("X-Dataverse-key" = key), ...,
-                    body = list(file = httr::upload_file(file),
-                                jsonData = jsondata
-                    ),
-                    encode = "multipart")
-    httr::stop_for_status(r, task = httr::content(r)$message)
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_multipart(
+            file = curl::form_file(file),
+            jsonData = jsondata
+        ) |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
     structure(jsonlite::fromJSON(
-      httr::content(r, as = "text", encoding = "UTF-8"),
+      httr2::resp_body_string(r),
       simplifyDataFrame = FALSE)$data$files[[1L]], class = "dataverse_file"
     )
   }

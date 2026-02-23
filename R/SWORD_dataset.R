@@ -54,14 +54,19 @@ initiate_sword_dataset <- function(dataverse, body, key = Sys.getenv("DATAVERSE_
         dataverse <- get_dataverse(dataverse)$alias
     }
     u <- paste0(api_url(server, prefix="dvn/api/"), "data-deposit/v1.1/swordv2/collection/dataverse/", dataverse)
+    req <- httr2::request(u) |>
+        httr2::req_auth_basic(key, "")
     if (is.character(body) && file.exists(body)) {
-        b <- httr::upload_file(body)
+        req <- httr2::req_body_file(req, body, type = "application/atom+xml")
     } else {
         b <- do.call("build_metadata", c(body, metadata_format = "dcterms"))
+        req <- httr2::req_body_raw(req, b, type = "application/atom+xml")
     }
-    r <- httr::POST(u, httr::authenticate(key, ""), httr::add_headers("Content-Type" = "application/atom+xml"), body = b, ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    structure(parse_atom(httr::content(r, as = "text", encoding = "UTF-8")))
+    req <- httr2::req_error(req, body = function(resp) {
+        tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+    })
+    r <- httr2::req_perform(req)
+    structure(parse_atom(httr2::resp_body_string(r)))
 }
 
 #' @title Delete dataset (SWORD)
@@ -106,9 +111,14 @@ delete_sword_dataset <- function(dataset, key = Sys.getenv("DATAVERSE_KEY"), ser
         u <- paste0(api_url(server, prefix="dvn/api/"), "data-deposit/v1.1/swordv2/edit/study/", dataset)
     }
 
-    r <- httr::DELETE(u, httr::authenticate(key, ""), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    cont <- httr::content(r, as = "text", encoding = "UTF-8")
+    req <- httr2::request(u) |>
+        httr2::req_auth_basic(key, "") |>
+        httr2::req_method("DELETE") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    cont <- httr2::resp_body_string(r)
     if (cont == "") {
         return(TRUE)
     } else {
@@ -161,9 +171,15 @@ publish_sword_dataset <- function(dataset, key = Sys.getenv("DATAVERSE_KEY"), se
         u <- paste0(api_url(server, prefix = "dvn/api/"), "data-deposit/v1.1/swordv2/edit/study/", dataset)
     }
 
-    r <- httr::POST(u, httr::authenticate(key, ""), httr::add_headers("In-Progress" = "false"), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    out <- xml2::as_list(xml2::read_xml(httr::content(r, as = "text", encoding = "UTF-8")))
+    req <- httr2::request(u) |>
+        httr2::req_auth_basic(key, "") |>
+        httr2::req_headers("In-Progress" = "false") |>
+        httr2::req_method("POST") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    out <- xml2::as_list(xml2::read_xml(httr2::resp_body_string(r)))
     out
 }
 
@@ -205,7 +221,7 @@ dataset_atom <- function(dataset, key = Sys.getenv("DATAVERSE_KEY"), server = Sy
         u <- paste0(api_url(server, prefix="dvn/api/"), "data-deposit/v1.1/swordv2/edit/study/", dataset)
     }
 
-    r <- api_get(u, httr::authenticate(key, ""), ..., as = "raw")
+    r <- api_get(u, ..., key = key, sword = TRUE, as = "raw")
     out <- parse_atom(rawToChar(r))
     out
 }
@@ -228,6 +244,6 @@ dataset_statement <- function(dataset, key = Sys.getenv("DATAVERSE_KEY"), server
         dataset <- prepend_doi(dataset)
         u <- paste0(api_url(server, prefix="dvn/api/"), "data-deposit/v1.1/swordv2/statement/study/", dataset)
     }
-    r <- api_get(u, httr::authenticate(key, ""), ..., as = "raw")
+    r <- api_get(u, ..., key = key, sword = TRUE, as = "raw")
     parse_dataset_statement(rawToChar(r))
 }

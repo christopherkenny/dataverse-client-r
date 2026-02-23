@@ -3,7 +3,7 @@
 #' @importFrom memoise memoise
 .onLoad <- function(libname, pkgname) {
   ##
-  ## 'memoise' httr::GET calls
+  ## 'memoise' api_get_impl calls
   ##
 
   ## API session cache

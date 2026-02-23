@@ -17,14 +17,25 @@ publish_dataverse <- function(dataverse, key = Sys.getenv("DATAVERSE_KEY"), serv
         # publish via native API
         dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
         u <- paste0(api_url(server), "dataverses/", dataverse, "/actions/:publish")
-        r <- httr::POST(u, httr::add_headers("X-Dataverse-key" = key), ...)
-        httr::stop_for_status(r, task = httr::content(r)$message)
-        return(httr::content(r)$data)
+        req <- httr2::request(u) |>
+            httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+            httr2::req_method("POST") |>
+            httr2::req_error(body = function(resp) {
+                tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+            })
+        r <- httr2::req_perform(req)
+        return(httr2::resp_body_json(r)$data)
     }
     # publish via sword API
-    r <- httr::POST(u, httr::authenticate(key, ""), httr::add_headers("In-Progress" = "false"), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    out <- xml2::as_list(xml2::read_xml(httr::content(r, as = "text", encoding = "UTF-8")))
+    req <- httr2::request(u) |>
+        httr2::req_auth_basic(key, "") |>
+        httr2::req_headers("In-Progress" = "false") |>
+        httr2::req_method("POST") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    out <- xml2::as_list(xml2::read_xml(httr2::resp_body_string(r)))
     # clean up response structure
     out
 }

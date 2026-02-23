@@ -17,7 +17,7 @@
 #' @export
 service_document <- function(key = Sys.getenv("DATAVERSE_KEY"), server = Sys.getenv("DATAVERSE_SERVER"), ...) {
     u <- paste0(api_url(server, prefix = "dvn/api/"), "data-deposit/v1.1/swordv2/service-document")
-    r <- api_get(u, httr::authenticate(key, ""), ...)
+    r <- api_get(u, ..., key = key, sword = TRUE)
     x <- xml2::as_list(xml2::read_xml(r))
     w <- x$workspace
     out <- list()
@@ -73,7 +73,7 @@ list_datasets <- function(dataverse, key = Sys.getenv("DATAVERSE_KEY"), server =
         dataverse <- get_dataverse(dataverse, key = key, server = server, ...)$alias
     }
     u <- paste0(api_url(server, prefix = "dvn/api/"), "data-deposit/v1.1/swordv2/collection/dataverse/", dataverse)
-    r <- api_get(u, httr::authenticate(key, ""), ..., as = "raw")
+    r <- api_get(u, ..., key = key, sword = TRUE, as = "raw")
 
     # clean up response structure
     x <- xml2::as_list(xml2::read_xml(r))
