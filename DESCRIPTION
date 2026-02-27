@@ -1,5 +1,5 @@
 Package: dataverse
-Version: 0.3.16
+Version: 0.3.17
 Title: Client for Dataverse 4+ Repositories
 Authors@R:
    c(person(given = "Shiro", 
@@ -46,7 +46,12 @@ Authors@R:
      person(given = "Konrad",
             family = "Oberwimmer",
             role = "ctb",
-            email = "konrad.oberwimmer@gmail.com"))
+            email = "konrad.oberwimmer@gmail.com"),
+     person(given = "Christopher T.",
+           family = "Kenny",
+           role = c("ctb"),
+           email = "ctkenny@proton.me",
+           comment = c(ORCID = "0000-0002-9386-6860")))
 Imports:
     checkmate,
     curl,
