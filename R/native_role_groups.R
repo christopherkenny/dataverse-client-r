@@ -35,9 +35,14 @@ create_group <- function(dataverse, alias, name, description, key = Sys.getenv("
               aliasInOwner = alias)
     dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
     u <- paste0(api_url(server), "dataverses/", dataverse, "/groups")
-    r <- httr::POST(u, httr::add_headers("X-Dataverse-key" = key), body = b, encode = "json", ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    j <- jsonlite::fromJSON(httr::content(r, as = "text", encoding = "UTF-8"))$data
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_json(b) |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    j <- jsonlite::fromJSON(httr2::resp_body_string(r))$data
     j$dataverse <- dataverse
     structure(j, class = "dataverse_group")
 }
@@ -67,9 +72,15 @@ update_group <- function(group, name, description, dataverse, key = Sys.getenv("
         dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
         u <- paste0(api_url(server), "dataverses/", dataverse, "/groups/", group)
     }
-    r <- httr::PUT(u, httr::add_headers("X-Dataverse-key" = key), body = b, encode = "json", ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    j <- jsonlite::fromJSON(httr::content(r, as = "text", encoding = "UTF-8"))$data
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_json(b) |>
+        httr2::req_method("PUT") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    j <- jsonlite::fromJSON(httr2::resp_body_string(r))$data
     j$dataverse <- dataverse
     structure(j, class = "dataverse_group")
 }
@@ -114,9 +125,14 @@ delete_group <- function(group, dataverse, key = Sys.getenv("DATAVERSE_KEY"), se
         dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
     }
     u <- paste0(api_url(server), "dataverses/", dataverse, "/groups/", group)
-    r <- httr::DELETE(u, httr::add_headers("X-Dataverse-key" = key), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    out <- jsonlite::fromJSON(httr::content(r, as = "text", encoding = "UTF-8"))
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_method("DELETE") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    out <- jsonlite::fromJSON(httr2::resp_body_string(r))
     if (out$status == "OK") {
         return(TRUE)
     } else {
@@ -150,9 +166,14 @@ add_roles_to_group <- function(group, role, dataverse, key = Sys.getenv("DATAVER
         stop("'server' is missing, but required")
     }
     u <- paste0(api_url(server), "dataverses/", dataverse, "/groups/", group, "/roleAssignees/", role)
-    r <- httr::PUT(u, httr::add_headers("X-Dataverse-key" = key), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    j <- jsonlite::fromJSON(httr::content(r, as = "text", encoding = "UTF-8"))$data
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_method("PUT") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    j <- jsonlite::fromJSON(httr2::resp_body_string(r))$data
     j
 }
 
@@ -166,7 +187,12 @@ remove_role_from_group <- function(group, role, dataverse, key = Sys.getenv("DAT
         dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
     }
     u <- paste0(api_url(server), "dataverses/", dataverse, "/groups/", group, "/roleAssignees/", role)
-    r <- httr::DELETE(u, httr::add_headers("X-Dataverse-key" = key), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    httr::content(r, as = "text", encoding = "UTF-8")
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_method("DELETE") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    httr2::resp_body_string(r)
 }

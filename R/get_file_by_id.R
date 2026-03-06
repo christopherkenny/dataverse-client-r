@@ -96,12 +96,10 @@ get_file_by_id <- function(
     # If not bundle, request single file in non-bundle format ----
     u <- paste0(api_url(server), u_part, fileid)
     if (return_url) {
-      return(httr::modify_url(u, query = query))
+      req_tmp <- do.call(httr2::req_url_query, c(list(httr2::request(u)), query))
+      return(req_tmp$url)
     }
-    # add a progress bar; 'NULL' if progress is not TRUE. 'NULL' arguments
-    # are not seen by httr::GET()
-    progress_bar <- if (isTRUE(progress)) httr::progress(type = "down")
-    api_get(u, query = query, progress_bar, ..., key = key, as = "raw")
+    api_get(u, query = query, progress = progress, ..., key = key, as = "raw")
   }
 
 #' @rdname files

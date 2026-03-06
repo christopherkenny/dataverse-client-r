@@ -1,5 +1,9 @@
 # dataverse
 
+# CHANGES in dataverse 0.3.17
+
+* Update to use `httr2` internally over `httr`.
+
 # CHANGES in dataverse 0.3.16
 
 * Fix API calls to set X-Dataverse-key header correctly (#140, by @konradoberwimmer)

@@ -183,7 +183,8 @@ prepend_doi <- function(dataset) {
     dataset <- paste0("doi:", strsplit(dataset, "DOI:", fixed = TRUE)[[1]][2])
   } else if (!grepl("^doi:", dataset)) {
     if (grepl("dx\\.doi\\.org", dataset) | grepl("^http", dataset)) {
-      dataset <- httr::parse_url(dataset)$path
+      # httr2::url_parse returns path with leading slash; strip it
+      dataset <- sub("^/", "", httr2::url_parse(dataset)$path)
     }
     dataset <- paste0("doi:", dataset)
   } else {
@@ -196,7 +197,9 @@ api_url <- function(server = Sys.getenv("DATAVERSE_SERVER"), prefix = "api/") {
   if (is.null(server) || server == "") {
     stop("'server' is missing with no default set in DATAVERSE_SERVER environment variable.")
   }
-  server_parsed <- httr::parse_url(server)
+  # httr2::url_parse requires a scheme; prepend https:// if missing
+  server_for_parse <- if (!grepl("^https?://", server)) paste0("https://", server) else server
+  server_parsed <- httr2::url_parse(server_for_parse)
   if (is.null(server_parsed[["hostname"]]) || server_parsed[["hostname"]] == "") {
     server_parsed[["hostname"]] <- server
   }
@@ -208,13 +211,18 @@ api_url <- function(server = Sys.getenv("DATAVERSE_SERVER"), prefix = "api/") {
   return(paste0("https://", domain, "/", prefix))
 }
 
-## common httr::GET() uses
+## common httr2::request() uses
 #' @importFrom checkmate assert_string
-api_get <- function(url, ..., key = NULL, as = "text", use_cache = Sys.getenv("DATAVERSE_USE_CACHE", "session")) {
+api_get <- function(url, ..., key = NULL, as = "text",
+                    use_cache = Sys.getenv("DATAVERSE_USE_CACHE", "session"),
+                    sword = FALSE, progress = FALSE) {
   assert_string(url)
   assert_string(key, null.ok = TRUE)
   assert_string(as, null.ok = TRUE)
   assert_use_cache(use_cache)
+  # Extract query from ...; ignore httr-specific objects
+  dots <- list(...)
+  query <- dots[["query"]]
   get <- switch(
     use_cache,
     "none" = api_get_impl,
@@ -222,20 +230,35 @@ api_get <- function(url, ..., key = NULL, as = "text", use_cache = Sys.getenv("D
     "disk" = api_get_disk_cache,
     stop("unknown value for 'use_cache'")
   )
-  get(url, ..., key = key, as = as)
+  get(url, key = key, as = as, sword = sword, query = query, progress = progress)
 }
 
 ## cache implemented via memoization; memoized functions defined in
 ## .onLoad()
-api_get_impl <- function(url, ..., key = NULL, as = "text") {
-  if (!is.null(key))
-    key <- httr::add_headers("X-Dataverse-key" = key)
-  r <- httr::GET(url, ..., key)
-  httr::stop_for_status(r, task = httr::content(r)$message)
-  httr::content(r, as = as, encoding = "UTF-8")
+api_get_impl <- function(url, key = NULL, as = "text", sword = FALSE, query = NULL, progress = FALSE) {
+  req <- httr2::request(url)
+  if (!is.null(query))
+    req <- do.call(httr2::req_url_query, c(list(req), query, list(.multi = "explode")))
+  if (isTRUE(sword)) {
+    req <- httr2::req_auth_basic(req, if (!is.null(key)) key else "", "")
+  } else if (!is.null(key)) {
+    req <- httr2::req_headers_redacted(req, "X-Dataverse-key" = key)
+  }
+  if (isTRUE(progress))
+    req <- httr2::req_progress(req, type = "down")
+  req <- httr2::req_error(req, body = function(resp) {
+    tryCatch(
+      httr2::resp_body_json(resp, simplifyVector = FALSE)$message,
+      error = function(e) NULL
+    )
+  })
+  resp <- httr2::req_perform(req)
+  if (identical(as, "raw")) httr2::resp_body_raw(resp)
+  else if (is.null(as)) httr2::resp_body_json(resp)
+  else httr2::resp_body_string(resp)
 }
 
-api_get_session_cache <- NULL      # per-session memoisatoin
+api_get_session_cache <- NULL      # per-session memoisation
 
 api_get_disk_cache <- NULL # 'permanent' memoisation
 

@@ -30,9 +30,14 @@ get_role <- function(role, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.geten
 # @export
 delete_role <- function(role, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.getenv("DATAVERSE_SERVER"), ...) {
     u <- paste0(api_url(server), "roles/", role)
-    r <- httr::DELETE(u, httr::add_headers("X-Dataverse-key" = key), ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    j <- jsonlite::fromJSON(httr::content(r, as = "text", encoding = "UTF-8"))$data
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_method("DELETE") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    j <- jsonlite::fromJSON(httr2::resp_body_string(r))$data
     j
 }
 
@@ -61,8 +66,13 @@ create_role <- function(dataverse, alias, name, description, permissions,
         permissions <- permissions
     }
     u <- paste0(api_url(server), "dataverses/", dataverse, "/roles")
-    r <- httr::POST(u, httr::add_headers("X-Dataverse-key" = key), body = b, encode = "json", ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    j <- jsonlite::fromJSON(httr::content(r, as = "text", encoding = "UTF-8"))$data
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_json(b) |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    j <- jsonlite::fromJSON(httr2::resp_body_string(r))$data
     structure(j, class = "dataverse_role")
 }

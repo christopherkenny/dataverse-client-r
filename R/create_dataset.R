@@ -27,9 +27,14 @@
 create_dataset <- function(dataverse, body, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.getenv("DATAVERSE_SERVER"), ...) {
     dataverse <- dataverse_id(dataverse, key = key, server = server, ...)
     u <- paste0(api_url(server), "dataverses/", dataverse, "/datasets/")
-    r <- httr::POST(u, httr::add_headers("X-Dataverse-key" = key), body = body, encode = "json", ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    httr::content(r)
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_json(body) |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    httr2::resp_body_json(r)
 }
 
 #' @rdname create_dataset
@@ -37,7 +42,13 @@ create_dataset <- function(dataverse, body, key = Sys.getenv("DATAVERSE_KEY"), s
 update_dataset <- function(dataset, body, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.getenv("DATAVERSE_SERVER"), ...) {
     dataset <- dataset_id(dataset, key = key, server = server, ...)
     u <- paste0(api_url(server), "datasets/", dataset, "/versions/:draft")
-    r <- httr::PUT(u, httr::add_headers("X-Dataverse-key" = key), body = body, encode = "json", ...)
-    httr::stop_for_status(r, task = httr::content(r)$message)
-    httr::content(r, as = "text", encoding = "UTF-8")
+    req <- httr2::request(u) |>
+        httr2::req_headers_redacted("X-Dataverse-key" = key) |>
+        httr2::req_body_json(body) |>
+        httr2::req_method("PUT") |>
+        httr2::req_error(body = function(resp) {
+            tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
+        })
+    r <- httr2::req_perform(req)
+    httr2::resp_body_string(r)
 }
