@@ -9,6 +9,7 @@ add_dataset_file(
   file,
   dataset,
   description = NULL,
+  directory_label = NULL,
   key = Sys.getenv("DATAVERSE_KEY"),
   server = Sys.getenv("DATAVERSE_SERVER"),
   ...
@@ -19,6 +20,7 @@ update_dataset_file(
   dataset = NULL,
   id,
   description = NULL,
+  directory_label = NULL,
   force = TRUE,
   key = Sys.getenv("DATAVERSE_KEY"),
   server = Sys.getenv("DATAVERSE_SERVER"),
@@ -33,6 +35,10 @@ for example \code{"10.70122/FK2/HXJVJU"}. Alternatively, an object of class
 \dQuote{dataverse_dataset} obtained by \code{dataverse_contents()}.}
 
 \item{description}{Optionally, a character string providing a description of the file.}
+
+\item{directory_label}{Optionally, a character string specifying a directory path within
+the dataset to place the file in, for example \code{"path/to/dir"}. Slashes create
+nested subdirectories.}
 
 \item{key}{A character string specifying a Dataverse server API key. If one
 is not specified, functions calling authenticated API endpoints will fail.
@@ -89,6 +95,10 @@ ds <- create_dataset("mydataverse", body = meta)
 # Upload RDS dataset saved to local
 saveRDS(mtcars, tmp <- tempfile(fileext = ".rds"))
 f <- add_dataset_file(tmp, dataset = ds, description = "mtcars")
+
+# Upload into a subdirectory within the dataset
+f2 <- add_dataset_file(tmp, dataset = ds, description = "mtcars",
+                       directory_label = "data/raw")
 
 # Publish dataset
 publish_dataset(ds)

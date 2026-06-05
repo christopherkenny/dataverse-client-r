@@ -23,6 +23,9 @@
 #'  a character string specifying a file name within the DOI-identified dataset; or an
 #'  object of class \dQuote{dataverse_file} as returned by \code{\link{dataset_files}}.
 #' @param description Optionally, a character string providing a description of the file.
+#' @param directory_label Optionally, a character string specifying a directory path within
+#'  the dataset to place the file in, for example \code{"path/to/dir"}. Slashes create
+#'  nested subdirectories.
 #' @param force A logical indicating whether to force the update even if the file
 #' types differ. Default is \code{TRUE}.
 #'
@@ -44,6 +47,10 @@
 #' saveRDS(mtcars, tmp <- tempfile(fileext = ".rds"))
 #' f <- add_dataset_file(tmp, dataset = ds, description = "mtcars")
 #'
+#' # Upload into a subdirectory within the dataset
+#' f2 <- add_dataset_file(tmp, dataset = ds, description = "mtcars",
+#'                        directory_label = "data/raw")
+#'
 #' # Publish dataset
 #' publish_dataset(ds)
 #'
@@ -62,6 +69,7 @@ add_dataset_file <-
   function(file,
            dataset,
            description = NULL,
+           directory_label = NULL,
            key = Sys.getenv("DATAVERSE_KEY"),
            server = Sys.getenv("DATAVERSE_SERVER"),
            ...) {
@@ -70,6 +78,9 @@ add_dataset_file <-
     bod2 <- list(forceReplace = force)
     if (!is.null(description)) {
       bod2$description <- description
+    }
+    if (!is.null(directory_label)) {
+      bod2$directoryLabel <- directory_label
     }
     jsondata <- as.character(jsonlite::toJSON(bod2, auto_unbox = TRUE))
 
@@ -95,6 +106,7 @@ update_dataset_file <-
            dataset = NULL,
            id,
            description = NULL,
+           directory_label = NULL,
            force = TRUE,
            key = Sys.getenv("DATAVERSE_KEY"),
            server = Sys.getenv("DATAVERSE_SERVER"),
@@ -115,6 +127,9 @@ update_dataset_file <-
     bod2 <- list(forceReplace = force)
     if (!is.null(description)) {
       bod2$description <- description
+    }
+    if (!is.null(directory_label)) {
+      bod2$directoryLabel <- directory_label
     }
     jsondata <- as.character(jsonlite::toJSON(bod2, auto_unbox = TRUE))
 
