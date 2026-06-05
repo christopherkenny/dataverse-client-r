@@ -148,11 +148,6 @@ delete_file <- function(id, key = Sys.getenv("DATAVERSE_KEY"), server = Sys.gete
         httr2::req_error(body = function(resp) {
             tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
         })
-    r <- httr2::req_perform(req)
-    cont <- httr2::resp_body_string(r)
-    if (cont == "") {
-        return(TRUE)
-    } else {
-        return(cont)
-    }
+    httr2::req_perform(req)
+    return(TRUE)
 }
