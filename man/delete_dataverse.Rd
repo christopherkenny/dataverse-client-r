@@ -34,7 +34,7 @@ on how the \emph{R} dataverse package uses disk and session caches to
 improve network performance.}
 }
 \value{
-A logical.
+An HTTP status code.
 }
 \description{
 Delete a dataverse

@@ -4,7 +4,7 @@
 #' @template dv
 #' @template envvars
 #' @template dots
-#' @return A logical.
+#' @returns An HTTP status code.
 #' @examples
 #' \dontrun{
 #' dv <- create_dataverse("mydataverse")
@@ -22,5 +22,5 @@ delete_dataverse <- function(dataverse, key = Sys.getenv("DATAVERSE_KEY"), serve
             tryCatch(httr2::resp_body_json(resp, simplifyVector = FALSE)$message, error = function(e) NULL)
         })
     r <- httr2::req_perform(req)
-    httr2::resp_body_string(r)
+    httr2::resp_status(r)
 }

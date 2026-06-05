@@ -61,6 +61,8 @@ Other contributors:
   \item Edward Jee [contributor]
   \item Johannes Gruber \email{JohannesB.Gruber@gmail.com} (\href{https://orcid.org/0000-0001-9177-1772}{ORCID}) [contributor]
   \item Martin Morgan \email{mtmorgan.xyz@gmail.com} (\href{https://orcid.org/0000-0002-5874-8148}{ORCID}) [contributor]
+  \item Konrad Oberwimmer \email{konrad.oberwimmer@gmail.com} [contributor]
+  \item Christopher T. Kenny \email{ctkenny@proton.me} (\href{https://orcid.org/0000-0002-9386-6860}{ORCID}) [contributor]
 }
 
 }
